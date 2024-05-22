@@ -1,0 +1,10 @@
+{
+    "require": {
+        "automattic/woocommerce": "^3.0.0"
+    },
+    "config": {
+        "allow-plugins": {
+            "composer/installers": true
+        }
+    }
+}
