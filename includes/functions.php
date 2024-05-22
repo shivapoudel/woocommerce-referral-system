@@ -72,8 +72,13 @@ function wcrs_set_cookie( $value, $referrer = null, $time = null ) {
 		$time = time() + ( DAY_IN_SECONDS * get_option( 'wcrs_cookie_expiry_time' ) );
 	}
 
-	setcookie( 'wcrs_referrer', $referrer, $time, COOKIEPATH, COOKIE_DOMAIN );
-	setcookie( 'wcrs_visitor_id', $value, $time, COOKIEPATH, COOKIE_DOMAIN );
+	if ( null !== $referrer ) {
+		setcookie( 'wcrs_referrer', $referrer, $time, COOKIEPATH, COOKIE_DOMAIN );
+	}
+
+	if ( null !== $value ) {
+		setcookie( 'wcrs_visitor_id', $value, $time, COOKIEPATH, COOKIE_DOMAIN );
+	}
 }
 
 /**
@@ -369,6 +374,8 @@ function wcrs_get_referrer_name_from_cookie( $user_id = 0 ) {
  */
 function wcrs_get_current_referral_url() {
 	$current_user = wp_get_current_user();
+	$referral_url = apply_filters( 'wcrs_current_referral_url', home_url() );
+
 	if ( $current_user ) {
 
 		$type = get_option( 'wcrs_type' );
@@ -376,10 +383,10 @@ function wcrs_get_current_referral_url() {
 
 		switch ( $type ) {
 			case 'Id':
-				$referral_url = add_query_arg( $slug, $current_user->ID, home_url() );
+				$referral_url = add_query_arg( $slug, $current_user->ID, $referral_url );
 				break;
 			default:
-				$referral_url = add_query_arg( $slug, $current_user->user_login, home_url() );
+				$referral_url = add_query_arg( $slug, $current_user->user_login, $referral_url );
 		}
 
 		return $referral_url;
@@ -455,27 +462,30 @@ function wcrs_generate_checkout_message( $points_earned, $message ) {
 function wcrs_create_log_table() {
 	global $wpdb;
 
-	$charset_collate = $wpdb->get_charset_collate();
+	// Check if the table already exists.
+	if ( $wpdb->get_var( "SHOW TABLES LIKE '{$wpdb->prefix}wcrs_logs';" ) ) {
+		$charset_collate = $wpdb->get_charset_collate();
 
-	$sql = 'CREATE TABLE IF NOT EXISTS ' . $wpdb->prefix . "wcrs_logs (
-            visit_id mediumint(9) NOT NULL AUTO_INCREMENT,
-            time datetime DEFAULT '0000-00-00 00:00:00' NULL,
-            visitor_id varchar(55) NULL,
-            IP varchar(55) DEFAULT '' NULL,
-            Country varchar(55) DEFAULT '' NULL,
-            login_username varchar(55) NULL,
-            referrer_url varchar(55) DEFAULT '' NULL,
-            landing_url varchar(55) DEFAULT '' NULL,
-            referrer varchar(55) NULL,
-            keytype varchar(55) NULL,
-            created_at datetime DEFAULT '0000-00-00 00:00:00' NULL,
-            updated_at datetime DEFAULT '0000-00-00 00:00:00' NULL,
-            extra_meta text NULL,
-            PRIMARY KEY  (visit_id)
-        ) $charset_collate;";
+		$sql = "CREATE TABLE {$wpdb->prefix}wcrs_logs (
+			visit_id mediumint(9) NOT NULL AUTO_INCREMENT,
+			time datetime DEFAULT '0000-00-00 00:00:00' NULL,
+			visitor_id varchar(55) NULL,
+			IP varchar(55) DEFAULT '' NULL,
+			Country varchar(55) DEFAULT '' NULL,
+			login_username varchar(55) NULL,
+			referrer_url varchar(55) DEFAULT '' NULL,
+			landing_url varchar(55) DEFAULT '' NULL,
+			referrer varchar(55) NULL,
+			keytype varchar(55) NULL,
+			created_at datetime DEFAULT '0000-00-00 00:00:00' NULL,
+			updated_at datetime DEFAULT '0000-00-00 00:00:00' NULL,
+			extra_meta text NULL,
+			PRIMARY KEY  (visit_id)
+		) $charset_collate;";
 
-	require_once ABSPATH . 'wp-admin/includes/upgrade.php';
-	dbDelta( $sql );
+		require_once ABSPATH . 'wp-admin/includes/upgrade.php';
+		dbDelta( $sql );
+	}
 }
 
 /**
