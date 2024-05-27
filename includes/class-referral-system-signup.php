@@ -196,7 +196,7 @@ if ( ! class_exists( 'Referral_System_Signup' ) ) {
 		public function new_customer_created( $customer_id ) {
 
 			$wcrs_get_cookie = wcrs_get_cookie();
-			$referrer        = $wcrs_get_cookie['wcrs_referrer'];
+			$referrer        = isset( $wcrs_get_cookie['wcrs_referrer'] ) ? $wcrs_get_cookie['wcrs_referrer'] : null;
 
 			$disable_for_referrer = false;
 			$disable_for_referee  = false;

@@ -94,19 +94,21 @@ if ( ! class_exists( 'Referral_System_Core' ) ) {
 			$custom_logo_id = get_theme_mod( 'custom_logo' );
 			$image          = wp_get_attachment_image_src( $custom_logo_id, 'full' );
 
-			if ( empty( $image[0] ) ) {
-				$image[0] = '';
+			if ( ! is_array( $image ) || empty( $image[0] ) ) {
+				$image_url = '';
+			} else {
+				$image_url = $image[0];
 			}
 
 			/*
 			@name: wrs_image_for_fb_share
 			@desc: Modify Fb image url.
-			@param: (string) $image[0] image url.
+			@param: (string) $image_url image url.
 			@package: codup-wc-referral-system
 			@module: frontend
 			@type: filter
 			*/
-			$image[0] = apply_filters( 'wrs_image_for_fb_share', $image[0] );
+			$image_url = apply_filters( 'wrs_image_for_fb_share', $image_url );
 
 			$url = get_bloginfo( 'url' );
 
@@ -149,7 +151,7 @@ if ( ! class_exists( 'Referral_System_Core' ) ) {
 			<meta property="og:type"          content="website" />
 			<meta property="og:title"         content="<?php echo wp_kses_post( esc_html( $title ) ); ?>" />
 			<meta property="og:description"   content="<?php echo wp_kses_post( esc_html( $description ) ); ?>" />
-			<meta property="og:image"         content="<?php echo wp_kses_post( esc_html( $image[0] ) ); ?>" />
+			<meta property="og:image"         content="<?php echo wp_kses_post( esc_html( $image_url ) ); ?>" />
 			<script>
 					function wcrsCopyReferralLinkFunction() {
 						var copyText = document.getElementById("referralLink");
@@ -611,7 +613,7 @@ if ( ! class_exists( 'Referral_System_Core' ) ) {
 		 * @param string  $deserve deserve.
 		 * @param string  $coupon_type coupon_type.
 		 */
-		public static function get_woo_email_template( $display_name, $coupon, $heading = false, $mailer, $deserve, $coupon_type ) {
+		public static function get_woo_email_template( $display_name, $coupon, $heading, $mailer, $deserve, $coupon_type ) {
 
 			$template = '/emails/coupon-discount.php';
 
